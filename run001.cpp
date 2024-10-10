@@ -3,18 +3,22 @@ $PROB
 $PARAM @annotated @covariates
 CRCL : 90 : CRCL
 AGE : 20 : AGE
-TIME_1: 12 : Time at first dose
+TIME_1 : 12 : Time at first dose
 TIME_2 : 24 : Time at second dose
 TIME_3 : 36 : Time at third dose
+TIME_4 : 48 : Time at fourth dose
 
 II_1: 12 : Dose interval between T0 and T1
-II_2: 24 : Dose interval between T1 and T2
-II_3: 36 : Dose interval between T3 and T4
+II_2: 12 : Dose interval between T1 and T2
+II_3: 12 : Dose interval between T2 and T3
+II_4: 12 : Dose interval between T3 and T4
 
-DOSE_1: 1000 : Initial dose (mg)
-DOSE_2: 1000 : Second dose
+
+DOSE_1 : 1000 : Initial dose (mg)
+DOSE_2 : 1000 : Second dose
 DOSE_3 : 1000 : Third dose
 DOSE_4 : 1000 : Fourth dose
+DOSE_5 : 1000 : Fifth dose
 
 UNTIL : 160 : Until when
 
@@ -27,7 +31,6 @@ $SIGMA 0.2679 0.002647
 
 $CMT @annotated
 CENTRAL : Central compartment (mg/L) [ADM, OBS]
-AUC : Area under the curve
 
 $TABLE
 double CP = CENTRAL/V ;
@@ -39,7 +42,7 @@ $PREAMBLE
 reg.init(self);
 
 $GLOBAL
-double CRCL, AGE, TVCL, CL, V, K10, AUC, INTERVAL, DOSE_1, DOSE_2, DOSE_3, DOSE_4;
+double CRCL, AGE, TVCL, CL, V, K10, INTERVAL, DOSE_1, DOSE_2, DOSE_3, DOSE_4, DOSE_5;
 evt::regimen reg;
 
 $THETA @annotated
@@ -54,22 +57,6 @@ CL = TVCL*exp(ETA(1) + ETA1) ;
 V = THETA(2) * exp(ETA(2) + ETA2)  ;
 K10 = CL/V;
 
-
-if(evt::near(TIME, TIME_1) && EVID > 0) {
-  reg.ii(II_2);
-  reg.amt(DOSE_2);
-}
-
-if(evt::near(TIME, TIME_2) && EVID > 0) {
-  reg.ii(UNTIL);
-  reg.amt(DOSE_3);
-}
-
-if(evt::near(TIME, TIME_3) && EVID > 0) {
-  reg.amt(DOSE_4);
-}
-
-
 if(NEWIND <= 1) {
   reg.init(self);
   reg.amt(DOSE_1);
@@ -79,13 +66,29 @@ if(NEWIND <= 1) {
   reg.flagnext();
 }
 
-$ERROR
-reg.execute();
 
-$SET ss_cmt = "-AUC"
+$ERROR
+if(TIME==TIME_1 && EVID==0) {
+  reg.ii(II_2);
+  reg.amt(DOSE_2);
+}
+
+if(TIME==TIME_2 && EVID==0) {
+  reg.ii(II_3);	
+  reg.amt(DOSE_3);
+}
+
+if(TIME==TIME_3 && EVID==0) {
+  reg.ii(II_4);
+  reg.amt(DOSE_4);
+}
+
+if(TIME==TIME_4 && EVID==0) {
+  reg.amt(DOSE_5);
+}
+reg.execute();
 
 $ODE
 dxdt_CENTRAL    = - K10*CENTRAL;
-dxdt_AUC = CENTRAL/V;
 
-$CAPTURE CP DV CL DOSE_1 DOSE_2 DOSE_3 DOSE_4  
+$CAPTURE CP DV CL DOSE_1 DOSE_2 DOSE_3 DOSE_4 DOSE_5
