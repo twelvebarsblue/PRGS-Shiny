@@ -1,0 +1,85 @@
+---
+title: Manual Vancomycin Dose Regimen
+date: \today
+params:
+  logo: logo.png
+  cover: cover.png
+  iblue: 2b4894
+  igray: d4dbde
+  gender: NULL
+  age: NULL
+  manual: NULL
+documentclass: article
+fontsize: 10
+papersize: a4paper
+output: 
+  IReports::businessReport:
+    keep_tex: TRUE
+    latex_engine: xelatex
+    resetStyleFiles: FALSE
+header-includes: 
+  - \newcommand{\logo}{`r gsub("_", "\\_", params$logo)`}
+  - \newcommand{\cover}{`r gsub("_", "\\_", params$cover)`}
+  - \newcommand{\iblue}{`r params$iblue`}
+  - \newcommand{\igray}{`r params$igray`}
+include-before:
+  - \renewcommand{\contentsname}{Table of Contents}
+  - \renewcommand{\pagename}{Page}
+---
+
+
+
+```{r setup, include = FALSE}
+# packages
+library(dplyr)
+library(knitr)
+library(xtable)
+
+# settings
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+\maketitle
+\tableofcontents
+\addcontentsline{toc}{section}{Contents}
+\clearpage
+
+\section{Patient's Characteristics}
+Gender: `r params$gender` \
+\
+Age: `r params$age` \
+\
+Creatinine clearance: `r round(params$manual$crcl)` mL/min
+
+\section{Model Description}
+`r params$manual$helpText`
+
+
+
+\section{Results}
+
+\subsection{Dosing Regimen}
+Loading Dose: `r params$manual$initDose` mg \
+\
+Maintenance Dose: \
+
+* `r params$manual$TIME_1`H: `r round(params$manual$dose2)` mg
+
+* `r params$manual$TIME_2`H: `r round(params$manual$dose3)` mg 
+
+* `r params$manual$TIME_3`H: `r round(params$manual$dose4)` mg
+
+* `r params$manual$TIME_4`H: `r round(params$manual$dose5)` mg 
+  
+
+\subsection{Plot}
+```{r results = "asis"}
+params$manual$plot_pk
+```
+
+\subsection{Table}
+```{r results = "asis"}
+kable(params$manual$cleaned_table, format = "latex", longtable = TRUE) %>%
+  kable_styling()
+```
+
